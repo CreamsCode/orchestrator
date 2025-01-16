@@ -31,7 +31,7 @@ jobs:
       - name: Wait for Collector Completion
         run: |
           echo "Waiting for Collector pipeline to complete..."
-          sleep 65
+          sleep 80
         
 
       - name: Get Collector Outputs from Logs
