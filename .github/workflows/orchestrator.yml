@@ -1,0 +1,44 @@
+name: Orchestrator Pipeline
+
+on:
+  workflow_dispatch: # Ejecuta el pipeline manualmente desde GitHub Actions
+
+jobs:
+  orchestrate:
+    runs-on: ubuntu-latest
+
+    env:
+      COLLECTOR_REPO: "CreamsCode/collector"  # Repositorio del Collector
+      DL_BUILDER_REPO: "CreamsCode/datalake-builder"    # Repositorio del Listener
+
+    steps:
+      - name: Set up GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+          gh auth login --with-token <<< "${{ secrets.MY_GITHUB_TOKEN }}"
+
+      - name: Trigger Collector Pipeline
+        run: |
+          gh workflow run collector.yml --repo $COLLECTOR_REPO
+
+      - name: Wait for Collector Completion
+        run: |
+          while [[ "$(gh run list --repo $COLLECTOR_REPO --status in_progress | wc -l)" -gt 0 ]]; do
+            echo "Waiting for Collector pipeline to complete..."
+            sleep 10
+          done
+
+      - name: Get Collector Outputs
+        run: |
+          OUTPUTS=$(gh run view $(gh run list --repo $COLLECTOR_REPO --status completed --json databaseId --jq '.[0].databaseId') --log | grep -E 'SQS_QUEUE_URL|SCRAPER_IP')
+          SQS_QUEUE_URL=$(echo "$OUTPUTS" | grep SQS_QUEUE_URL | cut -d '=' -f2)
+          SCRAPER_IP=$(echo "$OUTPUTS" | grep SCRAPER_IP | cut -d '=' -f2)
+          echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
+          echo "SCRAPER_IP=$SCRAPER_IP" >> $GITHUB_ENV
+
+      - name: Trigger Listener Pipeline
+        run: |
+          gh workflow run listener.yml --repo $DL_BUILDER_REPO \
+            -f sqs_queue_url="${{ env.SQS_QUEUE_URL }}" \
+            -f scraper_ip="${{ env.SCRAPER_IP }}"
