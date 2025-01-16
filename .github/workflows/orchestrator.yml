@@ -31,27 +31,7 @@ jobs:
       - name: Wait for Collector Completion
         run: |
           echo "Waiting for Collector pipeline to complete..."
-          sleep 5
-      
-          while true; do
-              # Verifica el estado del pipeline
-              running=$(gh run list --repo $COLLECTOR_REPO --status in_progress --json databaseId | jq length)
-              failed=$(gh run list --repo $COLLECTOR_REPO --status failure --json databaseId | jq length)
-      
-              # Si no hay ejecuciones activas
-              if [[ "$running" -eq 0 ]]; then
-                  if [[ "$failed" -gt 0 ]]; then
-                      echo "Collector pipeline failed. Exiting..."
-                      exit 1
-                  fi
-      
-                  echo "Collector pipeline completed successfully."
-                  break
-              fi
-      
-              echo "Waiting for Collector pipeline to complete..."
-              sleep 15
-          done
+          sleep 65
         
 
       - name: Get Collector Outputs
