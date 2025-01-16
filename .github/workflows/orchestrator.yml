@@ -36,8 +36,8 @@ jobs:
 
       - name: Get Outputs from Parameter Store
         run: |
-          SQS_QUEUE_URL=$(aws ssm get-parameter --name "sqs_queue_url" --query "Parameter.Value" --output text)
-          SCRAPER_IP=$(aws ssm get-parameter --name "scraper_ip" --query "Parameter.Value" --output text)
+          SQS_QUEUE_URL=$(aws ssm get-parameter --name "sqs_queue_url" --query "Parameter.Value" --output text --region us-east-1)
+          SCRAPER_IP=$(aws ssm get-parameter --name "scraper_ip" --query "Parameter.Value" --output text --region us-east-1)
 
           echo "SQS_QUEUE_URL=$SQS_QUEUE_URL"
           echo "SCRAPER_IP=$SCRAPER_IP"
