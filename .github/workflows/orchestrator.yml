@@ -56,27 +56,18 @@ jobs:
 
       - name: Get Collector Outputs
         run: |
-          # Obtener el run-id
+          # Obtener el ID de la última ejecución completada
           run_id=$(gh run list --repo $COLLECTOR_REPO --status completed --json databaseId --jq '.[0].databaseId')
-          
-          if [[ -z "$run_id" ]]; then
-              echo "No completed runs found for the Collector pipeline."
-              exit 1
-          fi
-          
-          # Obtener los logs del Collector y procesar las salidas
-          OUTPUTS=$(gh run view "$run_id" --repo $COLLECTOR_REPO --log | grep -E 'SQS_QUEUE_URL|SCRAPER_IP')
 
-          if [[ -z "$OUTPUTS" ]]; then
-              echo "No outputs found in the logs for run-id $run_id."
-              exit 1
-          fi
+          # Obtener los outputs de esa ejecución
+          OUTPUTS=$(gh run view $run_id --repo $COLLECTOR_REPO --json outputs)
+          SQS_QUEUE_URL=$(echo "$OUTPUTS" | jq -r '.outputs.sqs_queue_url.value')
+          SCRAPER_IP=$(echo "$OUTPUTS" | jq -r '.outputs.scraper_ip.value')
 
-          # Extraer las salidas
-          SQS_QUEUE_URL=$(echo "$OUTPUTS" | grep SQS_QUEUE_URL | cut -d '=' -f2)
-          SCRAPER_IP=$(echo "$OUTPUTS" | grep SCRAPER_IP | cut -d '=' -f2)
+          echo "SQS_QUEUE_URL=$SQS_QUEUE_URL"
+          echo "SCRAPER_IP=$SCRAPER_IP"
 
-          # Exportar las salidas
+          # Exportar a variables de entorno
           echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
           echo "SCRAPER_IP=$SCRAPER_IP" >> $GITHUB_ENV
 
