@@ -34,15 +34,17 @@ jobs:
           sleep 75
         
 
-      - name: Get Collector Outputs
+      - name: Get Collector Outputs from Logs
         run: |
           # Obtener el ID de la última ejecución completada
           run_id=$(gh run list --repo $COLLECTOR_REPO --status completed --json databaseId --jq '.[0].databaseId')
 
-          # Obtener los outputs de esa ejecución
-          OUTPUTS=$(gh run view $run_id --repo $COLLECTOR_REPO --json outputs)
-          SQS_QUEUE_URL=$(echo "$OUTPUTS" | jq -r '.outputs.sqs_queue_url.value')
-          SCRAPER_IP=$(echo "$OUTPUTS" | jq -r '.outputs.scraper_ip.value')
+          # Descargar los logs de esa ejecución
+          gh run view $run_id --repo $COLLECTOR_REPO --log > collector_logs.txt
+
+          # Extraer los valores necesarios desde los logs
+          SQS_QUEUE_URL=$(grep "sqs_queue_url" collector_logs.txt | awk -F '=' '{print $2}' | tr -d ' ')
+          SCRAPER_IP=$(grep "collector_public_ip" collector_logs.txt | awk -F '=' '{print $2}' | tr -d ' ')
 
           echo "SQS_QUEUE_URL=$SQS_QUEUE_URL"
           echo "SCRAPER_IP=$SCRAPER_IP"
