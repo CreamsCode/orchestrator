@@ -25,7 +25,7 @@ jobs:
         run: |
           gh workflow run collector.yml --repo $COLLECTOR_REPO \
             -f aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
-            -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
 
       - name: Wait for Collector Completion
