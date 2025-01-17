@@ -44,7 +44,7 @@ jobs:
 
       - name: Wait for Datalake Completion
         run: |
-          echo "Waiting for Collector pipeline to complete..."
+          echo "Waiting for Datalake pipeline to complete..."
           sleep 75
 
       - name: Trigger Datamart Pipeline
@@ -54,9 +54,9 @@ jobs:
             -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
 
-      - name: Wait for Datalake Completion
+      - name: Wait for Datamart Completion
         run: |
-          echo "Waiting for Collector pipeline to complete..."
+          echo "Waiting for Datamart pipeline to complete..."
           sleep 90
 
       - name: Trigger Graph Pipeline
