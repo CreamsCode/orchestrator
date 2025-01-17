@@ -1,15 +1,16 @@
 name: Orchestrator Pipeline
 
 on:
-  workflow_dispatch: # Ejecuta el pipeline manualmente desde GitHub Actions
+  workflow_dispatch: 
 
 jobs:
   orchestrate:
     runs-on: ubuntu-latest
 
     env:
-      COLLECTOR_REPO: "CreamsCode/collector"  # Repositorio del Collector
-      DL_BUILDER_REPO: "CreamsCode/datalake-builder"    # Repositorio del Listener
+      COLLECTOR_REPO: "CreamsCode/collector"
+      DL_BUILDER_REPO: "CreamsCode/datalake-builder"
+      DM_REPO: "CreamsCode/datamart"
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
@@ -36,6 +37,18 @@ jobs:
       - name: Trigger Listener Pipeline
         run: |
           gh workflow run datalake-builder.yml --repo $DL_BUILDER_REPO \
+            -f aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
+
+      - name: Wait for Datalake Completion
+        run: |
+          echo "Waiting for Collector pipeline to complete..."
+          sleep 75
+
+      - name: Trigger Datamart Pipeline
+        run: |
+          gh workflow run datalake-builder.yml --repo $DM_REPO \
             -f aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
