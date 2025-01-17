@@ -1,0 +1,80 @@
+name: Delete AWS Resources
+
+on:
+  workflow_dispatch: # Permite activar manualmente este workflow
+
+jobs:
+  delete-resources:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Delete EC2 Instances
+        run: |
+          echo "Deleting EC2 instances..."
+          INSTANCE_IDS=$(aws ec2 describe-instances \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text)
+          if [ -n "$INSTANCE_IDS" ]; then
+            aws ec2 terminate-instances --instance-ids $INSTANCE_IDS
+            echo "Waiting for EC2 instances to terminate..."
+            aws ec2 wait instance-terminated --instance-ids $INSTANCE_IDS
+          else
+            echo "No EC2 instances found."
+          fi
+
+      - name: Delete SQS Queues
+        run: |
+          echo "Deleting SQS queues..."
+          QUEUE_URLS=$(aws sqs list-queues --query "QueueUrls[]" --output text)
+          if [ -n "$QUEUE_URLS" ]; then
+            for QUEUE_URL in $QUEUE_URLS; do
+              aws sqs delete-queue --queue-url $QUEUE_URL
+              echo "Deleted queue: $QUEUE_URL"
+            done
+          else
+            echo "No SQS queues found."
+          fi
+
+      - name: Delete Subnets
+        run: |
+          echo "Deleting subnets..."
+          SUBNET_IDS=$(aws ec2 describe-subnets \
+            --query "Subnets[].SubnetId" \
+            --output text)
+          if [ -n "$SUBNET_IDS" ]; then
+            for SUBNET_ID in $SUBNET_IDS; do
+              aws ec2 delete-subnet --subnet-id $SUBNET_ID
+              echo "Deleted subnet: $SUBNET_ID"
+            done
+          else
+            echo "No subnets found."
+          fi
+
+      - name: Delete VPCs
+        run: |
+          echo "Deleting VPCs..."
+          VPC_IDS=$(aws ec2 describe-vpcs \
+            --query "Vpcs[].VpcId" \
+            --output text)
+          if [ -n "$VPC_IDS" ]; then
+            for VPC_ID in $VPC_IDS; do
+              aws ec2 delete-vpc --vpc-id $VPC_ID
+              echo "Deleted VPC: $VPC_ID"
+            done
+          else
+            echo "No VPCs found."
+          fi
+
+      - name: Cleanup Complete
+        run: echo "All resources have been deleted."
