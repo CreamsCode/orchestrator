@@ -30,7 +30,7 @@ jobs:
             -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
 
-      - name: Wait for Collector Completion
+      - name: Wait for Datalake Deployment Completion
         run: |
           echo "Waiting for Collector pipeline to complete..."
           sleep 75
