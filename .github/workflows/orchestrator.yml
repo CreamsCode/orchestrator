@@ -41,14 +41,11 @@ jobs:
 
           echo "SQS_QUEUE_URL=$SQS_QUEUE_URL"
           echo "SCRAPER_IP=$SCRAPER_IP"
-
-          echo "SQS_QUEUE_URL=$SQS_QUEUE_URL" >> $GITHUB_ENV
-          echo "SCRAPER_IP=$SCRAPER_IP" >> $GITHUB_ENV
-      
       
 
       - name: Trigger Listener Pipeline
         run: |
-          gh workflow run listener.yml --repo $DL_BUILDER_REPO \
-            -f sqs_queue_url="${{ env.SQS_QUEUE_URL }}" \
-            -f scraper_ip="${{ env.SCRAPER_IP }}"
+          gh workflow run datalake-builder.yml --repo $DL_BUILDER_REPO \
+            -f aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+            -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
