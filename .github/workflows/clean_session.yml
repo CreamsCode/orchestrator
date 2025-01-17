@@ -66,19 +66,19 @@ jobs:
               aws ec2 delete-internet-gateway --internet-gateway-id $IGW_ID
               echo "Deleted Internet Gateway: $IGW_ID"
             fi
+          
+            # Delete Security Groups
+            SG_IDS=$(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[?GroupName!='default'].GroupId" --output text)
+            for SG_ID in $SG_IDS; do
+              aws ec2 delete-security-group --group-id $SG_ID
+              echo "Deleted Security Group: $SG_ID"
+            done
 
             # Delete Route Tables
             ROUTE_TABLE_IDS=$(aws ec2 describe-route-tables --filters "Name=vpc-id,Values=$VPC_ID" --query "RouteTables[].RouteTableId" --output text)
             for RT_ID in $ROUTE_TABLE_IDS; do
               aws ec2 delete-route-table --route-table-id $RT_ID
               echo "Deleted Route Table: $RT_ID"
-            done
-
-            # Delete Security Groups
-            SG_IDS=$(aws ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[?GroupName!='default'].GroupId" --output text)
-            for SG_ID in $SG_IDS; do
-              aws ec2 delete-security-group --group-id $SG_ID
-              echo "Deleted Security Group: $SG_ID"
             done
 
             # Delete VPC
