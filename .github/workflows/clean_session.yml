@@ -39,8 +39,8 @@ jobs:
           QUEUE_URLS=$(aws sqs list-queues --query "QueueUrls[]" --output text)
           if [ -n "$QUEUE_URLS" ]; then
             for QUEUE_URL in $QUEUE_URLS; do
-              aws sqs delete-queue --queue-url $QUEUE_URL
-              echo "Deleted queue: $QUEUE_URL"
+              echo "Attempting to delete queue: $QUEUE_URL"
+              aws sqs delete-queue --queue-url "$QUEUE_URL" || echo "Failed to delete queue: $QUEUE_URL (may not exist)"
             done
           else
             echo "No SQS queues found."
