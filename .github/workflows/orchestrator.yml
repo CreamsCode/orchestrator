@@ -1,7 +1,7 @@
 name: Orchestrator Pipeline
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   orchestrate:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Trigger Datamart Pipeline
         run: |
-          gh workflow run datalake-builder.yml --repo $DM_REPO \
+          gh workflow run datamart.yml --repo $DM_REPO \
             -f aws_access_key_id="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -f aws_secret_access_key="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
             -f aws_session_token="${{ secrets.AWS_SESSION_TOKEN }}"
